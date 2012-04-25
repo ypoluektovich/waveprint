@@ -14,7 +14,7 @@ src/ - sources
 All sources are in Java 7.
 
 To build:
-$ ant dist
+$ ant
 
 Run any of the tools without arguments to see usage. Examples follow:
 
