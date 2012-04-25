@@ -1,0 +1,77 @@
+<project name="waveprint" basedir="." default="dist-one-jar">
+
+    <property file="build.properties"/>
+
+    <fileset id="libs" dir="${libs.dir}">
+        <include name="**/*.jar"/>
+        <exclude name="**/*src*"/>
+    </fileset>
+
+    <path id="classpath">
+        <fileset refid="libs"/>
+    </path>
+
+    <target name="ensure-target-dir">
+        <mkdir dir="${target.dir}"/>
+    </target>
+
+    <target name="clean-targets" depends="ensure-target-dir">
+        <delete dir="${target.msyu.dir}" failonerror="false"/>
+        <delete dir="${target.main.dir}" failonerror="false"/>
+        <delete dir="${target.tools.dir}" failonerror="false"/>
+    </target>
+
+    <target name="compile-msyu" depends="clean-targets">
+        <mkdir dir="${target.msyu.dir}"/>
+        <javac srcdir="${source.msyu.dir}" destdir="${target.msyu.dir}"
+               source="1.7" target="1.7" includeantruntime="false"
+               classpathref="classpath"/>
+    </target>
+
+    <target name="compile-main" depends="compile-msyu">
+        <mkdir dir="${target.main.dir}"/>
+        <javac srcdir="${source.main.dir}" destdir="${target.main.dir}"
+               source="1.7" target="1.7" includeantruntime="false">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${target.msyu.dir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-tools" depends="compile-main">
+        <mkdir dir="${target.tools.dir}"/>
+        <javac srcdir="${source.tools.dir}" destdir="${target.tools.dir}"
+               source="1.7" target="1.7" includeantruntime="false">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${target.msyu.dir}"/>
+                <pathelement location="${target.main.dir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="explode-libs">
+        <mkdir dir="${dist.exploded-libs.dir}"/>
+        <delete failonerror="false">
+            <fileset dir="${dist.exploded-libs.dir}" includes="**"
+                     defaultexcludes="false"/>
+        </delete>
+        <unjar dest="${dist.exploded-libs.dir}">
+            <patternset>
+                <exclude name="META-INF/MANIFEST.MF"/>
+            </patternset>
+            <fileset refid="libs"/>
+        </unjar>
+    </target>
+
+    <target name="dist-one-jar" depends="compile-tools, explode-libs">
+        <jar destfile="${dist.dir}/${ant.project.name}.jar">
+            <fileset dir="${target.msyu.dir}" includes="**"/>
+            <fileset dir="${target.main.dir}" includes="**"/>
+            <fileset dir="${target.tools.dir}" includes="**"/>
+            <fileset dir="${dist.exploded-libs.dir}" includes="**"/>
+        </jar>
+    </target>
+
+</project>
