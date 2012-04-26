@@ -3,8 +3,7 @@
     <property file="build.properties"/>
 
     <fileset id="libs" dir="${libs.dir}">
-        <include name="**/*.jar"/>
-        <exclude name="**/*src*"/>
+        <include name="jsr305.jar"/>
     </fileset>
 
     <path id="classpath">
