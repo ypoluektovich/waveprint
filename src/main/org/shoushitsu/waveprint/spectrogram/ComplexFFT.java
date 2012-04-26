@@ -100,7 +100,9 @@ class ComplexFFT {
 //		}
 	}
 
-	private static Pair<double[][], double[][]> precomputeSines(final int lengthLog2) {
+	private static Pair<double[][], double[][]> precomputeSines(
+			final int lengthLog2
+	) {
 		final double[][] sin = new double[lengthLog2][];
 		final double[][] cos = new double[lengthLog2][];
 		for (int l = 1; l <= lengthLog2; ++l) {
@@ -110,8 +112,8 @@ class ComplexFFT {
 			cos[l - 1] = new double[prevLength];
 			for (int k = 0; k < prevLength; ++k) {
 				final double argTk = -2.0 * Math.PI * k / curLength;
-				sin[l - 1][k] = Math.cos(argTk);
-				cos[l - 1][k] = Math.sin(argTk);
+				sin[l - 1][k] = Math.sin(argTk);
+				cos[l - 1][k] = Math.cos(argTk);
 			}
 		}
 		return Pair.of(sin, cos);
