@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  *
  * @author Yanus Poluektovich (ypoluektovich@gmail.com)
  */
-class ZeroTailComplexFFT {
+class ZeroTailComplexFFT implements ComplexFFT {
 
 	private final int myLengthLog2;
 	private final int myNonzeroLog2;
@@ -42,7 +42,8 @@ class ZeroTailComplexFFT {
 		myCosines = sinAndCos.getSecond();
 	}
 
-	void transform(@Nonnull final double[] re, @Nonnull final double[] im) {
+	@Override
+	public void transform(@Nonnull final double[] re, @Nonnull final double[] im) {
 		final int length = 1 << myLengthLog2;
 		if (re.length != length) {
 			throw new LengthMismatchException(true, re.length, length);

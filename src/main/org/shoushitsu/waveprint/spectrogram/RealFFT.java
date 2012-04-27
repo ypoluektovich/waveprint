@@ -11,7 +11,7 @@ class RealFFT {
 
 	RealFFT(final int lengthLog2) {
 		lengthDiv2 = 1 << (lengthLog2 - 1);
-		complexFFT = new ComplexFFT(lengthLog2);
+		complexFFT = new SimpleComplexFFT(lengthLog2);
 	}
 
 	void transform(@Nonnull final double[] re) {
