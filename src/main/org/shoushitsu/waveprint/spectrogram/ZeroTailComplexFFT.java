@@ -177,11 +177,18 @@ class ZeroTailComplexFFT implements ComplexFFT {
 	 */
 	private void bitReverseSort(final double[] re, final double[] im) {
 		final int length = 1 << myLengthLog2;
+		final int nonzeroLength = 1 << myNonzeroLog2;
 		final double[] tRe = new double[length];
 		final double[] tIm = new double[length];
 		for (int i = 0; i < length; i++) {
-			tRe[i] = re[myBitReversalPermutation[i]];
-			tIm[i] = im[myBitReversalPermutation[i]];
+			final int ixFrom = myBitReversalPermutation[i];
+			if (ixFrom < nonzeroLength) {
+				tRe[i] = re[ixFrom];
+				tIm[i] = im[ixFrom];
+			} else {
+				tRe[i] = 0;
+				tIm[i] = 0;
+			}
 		}
 		System.arraycopy(tRe, 0, re, 0, length);
 		System.arraycopy(tIm, 0, im, 0, length);
