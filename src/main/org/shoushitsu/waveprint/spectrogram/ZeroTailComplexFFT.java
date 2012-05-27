@@ -1,6 +1,5 @@
 package org.shoushitsu.waveprint.spectrogram;
 
-import msyu.util.collect.Pair;
 import org.shoushitsu.waveprint.exceptions.fft.LengthMismatchException;
 
 import javax.annotation.Nonnull;
@@ -27,19 +26,12 @@ class ZeroTailComplexFFT implements ComplexFFT {
 
 	private final int myLengthLog2;
 	private final int myNonzeroLog2;
-	private final int[] myBitReversalPermutation;
-	private final double[][] mySines;
-	private final double[][] myCosines;
+	private final PrecomputedFftData myPrecomputedFftData;
 
 	ZeroTailComplexFFT(final int lengthLog2, final int nonzeroLog2) {
 		myLengthLog2 = lengthLog2;
 		myNonzeroLog2 = nonzeroLog2;
-
-		myBitReversalPermutation = precomputeBitReversal(lengthLog2);
-
-		final Pair<double[][], double[][]> sinAndCos = precomputeSines(myLengthLog2);
-		mySines = sinAndCos.getFirst();
-		myCosines = sinAndCos.getSecond();
+		myPrecomputedFftData = new PrecomputedFftData(lengthLog2);
 	}
 
 	@Override
@@ -143,8 +135,8 @@ class ZeroTailComplexFFT implements ComplexFFT {
 		final int prevLength = 1 << lMinusOne;
 		final int curLength = prevLength << 1;
 
-		final double reTk = myCosines[lMinusOne][k];
-		final double imTk = mySines[lMinusOne][k];
+		final double reTk = myPrecomputedFftData.getCosines()[lMinusOne][k];
+		final double imTk = myPrecomputedFftData.getSines()[lMinusOne][k];
 
 		// index of k'th element of frame ixK
 		final int curK = k + ixK * curLength;
@@ -173,15 +165,17 @@ class ZeroTailComplexFFT implements ComplexFFT {
 	 * @param re    real parts
 	 * @param im    imaginary parts
 	 *
-	 * @see #precomputeBitReversal(int)
+	 * @see PrecomputedFftData#getBitReversalPermutation()
 	 */
 	private void bitReverseSort(final double[] re, final double[] im) {
 		final int length = 1 << myLengthLog2;
 		final int nonzeroLength = 1 << myNonzeroLog2;
 		final double[] tRe = new double[length];
 		final double[] tIm = new double[length];
+		final int[] permutation =
+				myPrecomputedFftData.getBitReversalPermutation();
 		for (int i = 0; i < length; i++) {
-			final int ixFrom = myBitReversalPermutation[i];
+			final int ixFrom = permutation[i];
 			if (ixFrom < nonzeroLength) {
 				tRe[i] = re[ixFrom];
 				tIm[i] = im[ixFrom];
@@ -194,58 +188,4 @@ class ZeroTailComplexFFT implements ComplexFFT {
 		System.arraycopy(tIm, 0, im, 0, length);
 	}
 
-	/**
-	 * Computes sines and cosines of arguments that will be needed in (full) FFT
-	 * of given length.
-	 *
-	 * @param lengthLog2    binary logarithm of length of full FFT frame
-	 * @return a pair of arrays (for sines and cosines, in that order) that are
-	 * indexed first by (recombination level - 1), then (index of elements in
-	 * frames on the previous recombination level used by a single butterfly).
-	 */
-	private static Pair<double[][], double[][]> precomputeSines(
-			final int lengthLog2
-	) {
-		final double[][] sin = new double[lengthLog2][];
-		final double[][] cos = new double[lengthLog2][];
-		for (int l = 1; l <= lengthLog2; ++l) {
-			final int curLength = 1 << l;
-			final int prevLength = curLength >> 1;
-			sin[l - 1] = new double[prevLength];
-			cos[l - 1] = new double[prevLength];
-			for (int k = 0; k < prevLength; ++k) {
-				final double argTk = -2.0 * Math.PI * k / curLength;
-				sin[l - 1][k] = Math.sin(argTk);
-				cos[l - 1][k] = Math.cos(argTk);
-			}
-		}
-		return Pair.of(sin, cos);
-	}
-
-	/**
-	 * Computes the bit reversal permutation.
-	 *
-	 * @param lengthLog2    binary logarithm of length of intended FFT frame
-	 * @return an array of which <code>i</code>'th element is the index of
-	 * element in the source sequence which must be placed into
-	 * <code>i</code>'th position of the permuted sequence:
-	 * <pre>permuted[i] := source[result[i]]</pre>
-	 */
-	private static int[] precomputeBitReversal(final int lengthLog2) {
-		final int length = 1 << lengthLog2;
-		final int[] result = new int[length];
-		for (int i = 0; i < length; i++) {
-			int x = i;
-			int r = 0;
-			for (int j = 0; j < lengthLog2; j++) {
-				r = r << 1;
-				if ((x & 0x1) == 1) {
-					r += 1;
-				}
-				x = x >> 1;
-			}
-			result[i] = r;
-		}
-		return result;
-	}
 }
