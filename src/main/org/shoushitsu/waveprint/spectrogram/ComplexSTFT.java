@@ -23,7 +23,12 @@ public interface ComplexSTFT {
 	 * the real-parts array, and {@code Im} stands for the imaginary-parts
 	 * array. Each pair is the result of a Discrete-time Fourier Transform of
 	 * the frame of the source data with the corresponding index.
+	 *
+	 * @throws IllegalArgumentException if one of the arrays is too short.
 	 */
-	List<Pair<double[], double[]>> transform(@Nonnull double[] re, @Nonnull double[] im);
+	List<Pair<double[], double[]>> transform(
+			@Nonnull double[] re,
+			@Nonnull double[] im
+	) throws IllegalArgumentException;
 
 }
